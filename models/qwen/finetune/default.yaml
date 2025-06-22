@@ -1,0 +1,60 @@
+hydra:
+  job:
+    chdir: False
+  run:
+    dir: ./output/${now:%Y-%m-%d_%H-%M-%S}
+
+# Distributed training configuration
+master_addr: "127.0.0.1"
+master_port: -1  # Will be randomized if -1
+nnodes: 1
+nproc_per_node: -1 # auto check
+
+# DeepSpeed configuration
+deepspeed: "./scripts/zero3.json"
+
+# Model configuration
+llm: "Qwen/Qwen2.5-VL-3B-Instruct"
+
+cache_path: ${llm}  # Choose one of the above caches
+
+# Training hyperparameters
+lr: 2e-5
+batch_size: 4
+grad_accum_steps: 4
+
+# Training entry point
+entry_file: "qwenvl/train/train_qwen.py"
+
+# Dataset configuration
+datasets: "vlm_4o_custom"
+
+# Output configuration
+run_name: ""  # Will be auto-generated if empty
+output_dir: ""  # Will be auto-generated if empty
+
+# Other training arguments
+lora_llm: true
+lora_r: 64
+lora_alpha: 16
+
+data_flatten: true
+data_packing: true
+tune_mm_vision: false
+tune_mm_mlp: true
+tune_mm_llm: true
+bf16: true
+num_train_epochs: 2
+eval_strategy: "no"
+save_strategy: "steps"
+save_steps: 1000
+save_total_limit: 1
+weight_decay: 0
+warmup_ratio: 0.03
+max_grad_norm: 1
+lr_scheduler_type: "cosine"
+logging_steps: 1
+model_max_length: 8192
+gradient_checkpointing: true
+dataloader_num_workers: 4
+report_to: "wandb"
