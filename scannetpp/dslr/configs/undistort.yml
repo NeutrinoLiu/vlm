@@ -1,0 +1,29 @@
+# folder where the data is downloaded
+data_root: /home/nuo/vlm_proj/Journey9ni_raw_data_part/scannetpp
+
+splits: [nvs_sem_train, nvs_sem_val]
+
+scene_list_file: ../QA_scannetpp/sc_name.txt
+
+# scene_ids: [
+#     "036bce3393", "1a8e0d78c0", "32280ecbca", "4c5c60fa76", "6ee2fc1070", "8a35ef3cfe", "a1d9da703c", "bd9305480d", "d7abfc4b17", "f07340dfea",
+#     "076c822ecc", "1ae9e5d2a6", "324d07a5b3", "4ea827f5a1", "6f1848d1e3", "8b2c0938d6", "a29cccc784", "be0ed6b33c", "d918af9c5f", "f248c2bcdc",
+#     "079a326597", "1b75758486", "355e5e32db", "50809ea0d8", "7079b59642", "8b5caf3398", "a4e227f506", "bf6e439e38", "daffc70503", "f25f5e6f63",
+#     "07f5b601ee", "1b9692f0c7", "37ea1c52f0", "52599ae063", "709ab5bffe", "8be0cd3817", "a5114ca13d", "bfd3fd54d2", "dc263dfbf0", "f34d532901",
+#     "07ff1c45bb", "1c4b893630", "3928249b53", "54b6127146", "712dc47104", "8d563fc2cc", "aaa11940d3", "c06a983e63", "dfac5b38df", "f5401524e5"
+# ]
+
+# scene_ids: []
+
+# The following paths should be given relative to the DATA_ROOT/dslr/
+# If not given, will use the default directory defined in ScannetppScene class
+
+# input_image_dir: resized_images
+# input_mask_dir: resized_anon_masks
+# input_transforms_path: nerfstudio/transforms.json
+
+downscale_factor: 1.0
+# All use the relative path to DATA_ROOT/dslr/
+out_image_dir: undistorted_images
+out_mask_dir: undistorted_anon_masks
+out_transforms_path: nerfstudio/transforms_undistorted.json

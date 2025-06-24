@@ -1,0 +1,39 @@
+{
+  "scene_token": "0a5c01343testtest",
+  "sample_token": "0a5c01343testtest_CAM_FRONT",
+  "sample_data_token": "0a5c01343testtest_CAM_FRONT_DSC01828",
+  "timestamp": "DSC01828",
+  "image_path": "./structured-data/0a5c01343testtest/DSC01828/CAM_FRONT_raw.jpg",
+  "image_box_path": "./structured-data/0a5c01343testtest/DSC01828/CAM_FRONT_box.jpg",
+  "image_width": 1752,
+  "image_height": 1168,
+  "cam_t": [
+    1.783678560093811,
+    1.2889049466021325,
+    1.4142375615603417
+  ],
+  "cam_r": [
+    -0.26931654946413974,
+    0.5041267065192203,
+    0.7281769440362469,
+    -0.3782633978233238
+  ],
+  "intrinsic": [
+    [
+      623.2202346680212,
+      0.0,
+      876.0
+    ],
+    [
+      0.0,
+      623.2286066112721,
+      584.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "annos": []
+}

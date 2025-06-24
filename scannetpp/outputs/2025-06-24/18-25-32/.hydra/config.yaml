@@ -1,0 +1,14 @@
+data_root: ../Journey9ni_raw_data_part/scannetpp/data
+scene_list_file: ../QA_scannetpp/sc_name.txt
+filter_scenes: []
+image_type: dslr
+no_log: true
+subsample_factor: 1
+image_downsample_factor: 4
+rasterout_dir: ../temp_rasterize
+limit_images: None
+wandb_group: null
+wandb_notes: null
+batch_size: 4
+limit_batches: null
+skip_existing: false

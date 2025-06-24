@@ -1,0 +1,76 @@
+{
+  "scene_token": "0a5c01343testtest",
+  "sample_token": "0a5c01343testtest_CAM_FRONT",
+  "sample_data_token": "0a5c01343testtest_CAM_FRONT_DSC01790",
+  "timestamp": "DSC01790",
+  "image_path": "./structured-data/0a5c01343testtest/DSC01790/CAM_FRONT_raw.jpg",
+  "image_box_path": "./structured-data/0a5c01343testtest/DSC01790/CAM_FRONT_box.jpg",
+  "image_width": 1752,
+  "image_height": 1168,
+  "cam_t": [
+    0.9160606982120816,
+    1.4642075386253044,
+    1.7991588690912925
+  ],
+  "cam_r": [
+    -0.3392865736107464,
+    0.11462028035115308,
+    -0.4711832614229405,
+    0.8060602622971459
+  ],
+  "intrinsic": [
+    [
+      623.2202346680212,
+      0.0,
+      876.0
+    ],
+    [
+      0.0,
+      623.2286066112721,
+      584.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "annos": [
+    {
+      "anno_token": "0a5c01343testtest_CAM_FRONT_DSC01790_12",
+      "instance_token": "0a5c01343testtest_CAM_FRONT_12",
+      "category_name": "ceiling lamp",
+      "box_t": [
+        1.604664484533747,
+        1.0006851365219978,
+        2.597522792718353
+      ],
+      "box_r": [
+        0.015288039845283144,
+        -0.05295726705743474,
+        0.9982371308711959,
+        0.022009867185864288
+      ],
+      "bbox_size": [
+        1.2855713779889026,
+        0.10559843806874127,
+        0.06565530845635045
+      ],
+      "visibility": "v80-100",
+      "attribute": null,
+      "2d_crop": {
+        "diag": [
+          [
+            507.8729600498215,
+            1022.4386534708175
+          ],
+          [
+            106.29223874610287,
+            644.8253314665963
+          ]
+        ],
+        "area": 277110.6542858742
+      }
+    }
+  ]
+}

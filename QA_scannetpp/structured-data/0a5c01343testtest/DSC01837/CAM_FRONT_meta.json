@@ -1,0 +1,76 @@
+{
+  "scene_token": "0a5c01343testtest",
+  "sample_token": "0a5c01343testtest_CAM_FRONT",
+  "sample_data_token": "0a5c01343testtest_CAM_FRONT_DSC01837",
+  "timestamp": "DSC01837",
+  "image_path": "./structured-data/0a5c01343testtest/DSC01837/CAM_FRONT_raw.jpg",
+  "image_box_path": "./structured-data/0a5c01343testtest/DSC01837/CAM_FRONT_box.jpg",
+  "image_width": 1752,
+  "image_height": 1168,
+  "cam_t": [
+    2.02189197689176,
+    0.9070111541209354,
+    1.7974817546159483
+  ],
+  "cam_r": [
+    0.8711788851859393,
+    -0.4630762222925634,
+    -0.03931804970135948,
+    0.15830935954994516
+  ],
+  "intrinsic": [
+    [
+      623.2202346680212,
+      0.0,
+      876.0
+    ],
+    [
+      0.0,
+      623.2286066112721,
+      584.0
+    ],
+    [
+      0.0,
+      0.0,
+      1.0
+    ]
+  ],
+  "annos": [
+    {
+      "anno_token": "0a5c01343testtest_CAM_FRONT_DSC01837_6",
+      "instance_token": "0a5c01343testtest_CAM_FRONT_6",
+      "category_name": "pipe",
+      "box_t": [
+        2.468448926364756,
+        1.8493010717125133,
+        2.565345406532287
+      ],
+      "box_r": [
+        0.7069835740540112,
+        -0.013199470361217554,
+        -0.013199470361217557,
+        0.706983574054011
+      ],
+      "bbox_size": [
+        0.044237791031287686,
+        0.980164766311645,
+        0.04075219749778663
+      ],
+      "visibility": "v80-100",
+      "attribute": null,
+      "2d_crop": {
+        "diag": [
+          [
+            1147.5426724459587,
+            1436.0663625246564
+          ],
+          [
+            277.03954046011756,
+            713.3231073497753
+          ]
+        ],
+        "area": 125878.14463970037
+      }
+    }
+  ]
+}
