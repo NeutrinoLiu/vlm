@@ -44,7 +44,9 @@ class QAInstance:
             images = self.ctx["scene"].frames_imgs
         else:
             # only roi frames, easier task
-            images = [f["image_path"] for f in self.ctx["frames"]]
+            # TODO dirty code:
+            correctify = lambda s: s.replace("temp_out_formal", "structured-data")
+            images = [correctify(f["image_path"]) for f in self.ctx["frames"]]
         
         # rel to abs
         images = [os.path.abspath(img) for img in images]
@@ -88,6 +90,10 @@ class QAScene:
         """
         objs = []
         for anno in frame_meta['annos']:
+            # print(f"object {anno['instance_token']}")
+            # print(f"filter passed {obj_filter(anno)}")
+            # print(f"caption ready {self.caption_ready(anno['instance_token'])}")
+
             if obj_filter(anno) and self.caption_ready(anno['instance_token']):
                 new_obj = (anno['instance_token'], anno['category_name'])
                 objs.append(new_obj)

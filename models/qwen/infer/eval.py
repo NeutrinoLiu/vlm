@@ -17,38 +17,6 @@ from vision_process import process_vision_info
 
 def load_model(args):
 
-    # load vanilla qwen2.5 model
-    print(f" >>> Loading vanilla model from {args.model_base}")
-    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        args.model_base,
-        cache_dir=None,
-        attn_implementation="flash_attention_2",
-        torch_dtype=(torch.bfloat16),
-        device_map="auto",
-    )
-
-    if not args.base_only:
-        # load finetuned non-lora part
-        print(f" >>> Loading finetuned non-lora part from non_lora_trainables.bin")
-        if os.path.exists(os.path.join(args.model_path, 'non_lora_trainables.bin')):
-            non_lora_trainables = torch.load(os.path.join(args.model_path, 'non_lora_trainables.bin'), map_location='cpu')
-        non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
-        if any(k.startswith('model.model.') for k in non_lora_trainables):
-            non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
-        model.load_state_dict(non_lora_trainables, strict=False)
-
-        # load finetuned lora part
-        print(f" >>> Loading finetuned lora part from {args.model_path}")
-        from peft import PeftModel
-        model = PeftModel.from_pretrained(model, args.model_path)
-        model = model.merge_and_unload()
-        if args.save_merged:
-            merged_path = args.model_path + "_merged"
-            os.makedirs(merged_path, exist_ok=True)
-            print(f" >>> Saving merged model to {merged_path}")
-            model.save_pretrained(merged_path)
-        print(f"load model into {model.device}")
-
     # load tokenizer
     tokenizer_path = args.model_base if args.base_only else args.model_path
     print(f" >>> Loading tokenizer from {tokenizer_path}")
@@ -68,6 +36,55 @@ def load_model(args):
         padding_side="left",
     )
 
+    # load vanilla qwen2.5 model
+    print(f" >>> Loading vanilla model from {args.model_base}")
+
+    if not args.vllm:
+        model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+            args.model_base,
+            cache_dir=None,
+            attn_implementation="flash_attention_2",
+            torch_dtype=(torch.bfloat16),
+            device_map="auto",
+        )
+    else:
+        raise NotImplementedError("vllm backend not implemented")
+        assert args.base_only, "vllm does not support lora loading"
+        from vllm import LLM, SamplingParams
+        sampling_params = SamplingParams(
+            temperature=1.0,
+            top_p=1.0,
+            top_k=50,
+            num_beams=1,
+            max_new_tokens=1024,
+            do_sample=False,
+            repetition_penalty=1.0,
+            length_penalty=1.0,
+        )
+        model = LLM(
+            model=args.model_base,
+            max_model_len=args.model_max_length,
+            device_map="auto",
+            torch_dtype=torch.bfloat16,
+            trust_remote_code=True,
+        )
+
+    if not args.base_only:
+        # load finetuned non-lora part
+        print(f" >>> Loading finetuned non-lora part from non_lora_trainables.bin")
+        if os.path.exists(os.path.join(args.model_path, 'non_lora_trainables.bin')):
+            non_lora_trainables = torch.load(os.path.join(args.model_path, 'non_lora_trainables.bin'), map_location='cpu')
+        non_lora_trainables = {(k[11:] if k.startswith('base_model.') else k): v for k, v in non_lora_trainables.items()}
+        if any(k.startswith('model.model.') for k in non_lora_trainables):
+            non_lora_trainables = {(k[6:] if k.startswith('model.') else k): v for k, v in non_lora_trainables.items()}
+        model.load_state_dict(non_lora_trainables, strict=False)
+
+        # load finetuned lora part
+        print(f" >>> Loading finetuned lora part from {args.model_path}")
+        from peft import PeftModel
+        model = PeftModel.from_pretrained(model, args.model_path)
+        model = model.merge_and_unload()
+        print(f"load model into {model.device}")
 
     return model, tokenizer, full_processor
 
@@ -238,6 +255,7 @@ if __name__ == "__main__":
     parser.add_argument("--base-only", action="store_true", help="Whether to load lora model")
     parser.add_argument("--save-merged", action="store_true", help="save lora merged model")
     parser.add_argument("-b", "--batch-size", type=int, default=1, help="batch size")
+    parser.add_argument("--vllm", action="store_true", help="use vllm backend")
     args = parser.parse_args()
 
     if args.model_path is None:

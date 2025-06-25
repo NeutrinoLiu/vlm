@@ -126,7 +126,7 @@ class TrackingTasks(TaskSet):
 
         for idx, f in enumerate(frames):
             anno = anno_of_obj_from_frame(f, obj)
-            if anno is None or int(anno["visibility"].split("-")[-1]) < 60:
+            if anno is None:
                 continue
             obj_center_x = (anno["2d_crop"]["diag"][0][0] + anno["2d_crop"]["diag"][0][1]) / 2
             obj_center_y = (anno["2d_crop"]["diag"][1][0] + anno["2d_crop"]["diag"][1][1]) / 2

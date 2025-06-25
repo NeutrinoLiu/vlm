@@ -5,17 +5,18 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("plan_file", type=str, default="./qa_plan.json")
+parser.add_argument("--parallel_eval", action="store_true", help="parallel eval")
 args = parser.parse_args()
 
-output_root = "/mnt/bn/nlhei-nas/liubangya/proj/vlm-found3d/tasks"
+output_root = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/workspace"
 
 with open(args.plan_file, "r") as f:
     plan = json.load(f)
 
-sft_json = "/mnt/bn/nlhei-nas/liubangya/proj/vlm-found3d/vlm/qwen/finetune-custom-dataset/custom.json"
+sft_json = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/models/tmp/qwen-custom-dataset/custom.json"
 base_model_default = "Qwen/Qwen2.5-VL-7B-Instruct"
-eval_exec = "/mnt/bn/nlhei-nas/liubangya/proj/vlm-found3d/vlm/qwen/eval"
-sft_exec = "/mnt/bn/nlhei-nas/liubangya/proj/vlm-found3d/vlm/qwen/finetune"
+eval_exec = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/models/qwen/infer"
+sft_exec = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/models/qwen/finetune"
 
 """
 {"qa_task_name":{
@@ -146,13 +147,17 @@ for qa_name, qa_file in plan.items():
         if not ret:
             failed_flag = True
 
-    threads = []
-    threads.append(threading.Thread(target=thread_base_eval))
-    threads.append(threading.Thread(target=thread_lora_eval))
-    for t in threads:
-        t.start()
-    # for t in threads:
-        t.join()
+    if args.parallel_eval:
+        threads = []
+        threads.append(threading.Thread(target=thread_base_eval))
+        threads.append(threading.Thread(target=thread_lora_eval))
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+    else:
+        thread_base_eval()
+        thread_lora_eval()
     if failed_flag:
         print(f"eval failed: {qa_name}")
         break

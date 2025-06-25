@@ -1,0 +1,1 @@
+QA decorators are modules that takes in QA pairs and also output QA pairs with an optional updated media data.

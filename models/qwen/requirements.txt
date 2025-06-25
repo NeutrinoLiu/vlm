@@ -15,3 +15,5 @@ ffmpeg
 matplotlib
 wandb
 tqdm
+flash-attn
+# vllm

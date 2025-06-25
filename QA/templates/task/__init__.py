@@ -7,13 +7,28 @@ class Hints:
     MULTI_CHOICE_REPLY_HINT = f"(just reply the correct option's letter in json {{'ans': ans}}, {DIST_UNIT_HINT}, {FRAME_IDX_HINT})"
     XY_COORD_REPLY_HINT = f"(just reply in json {{'x': x, 'y': y}}, x to the right, y to the front, ignore z, {DIST_UNIT_HINT}, {FRAME_IDX_HINT})"
 
+import json
 class TaskSet:
     def __init__(self, cfg, seed):
         self.tasks = {}
         self.cfg = cfg
         self.randseed = seed
+        self.unique_hash = set()
+        self.duped_hash_ctr = 0
     def format_deco(self, formatted_qa):
         return formatted_qa
+    def unique_qa(self, new_qa):
+        # hash the new_qa dict
+        new_hash = hash(str(new_qa))
+        if new_hash in self.unique_hash:
+            self.duped_hash_ctr += 1
+            if self.duped_hash_ctr % 100 == 0:
+                print(f"Warning: {self.duped_hash_ctr} duplicated hashes")
+            return False
+        else:
+            self.unique_hash.add(new_hash)
+            return True
+
     def produce(self, dataset, num_qas, verbose=False):
         qas = []
         stats = {}
@@ -28,8 +43,9 @@ class TaskSet:
                     if verbose:
                         print(f"Error: {e}")
                     continue
-                qas.append(qa)
-                stats[qa.QA_type] = stats.get(qa.QA_type, 0) + 1
+                if self.unique_qa(qa):
+                    qas.append(qa)
+                    stats[qa.QA_type] = stats.get(qa.QA_type, 0) + 1
                 if len(qas) % 500 == 0:
                     print(f"Generated {len(qas)} QAs, stats: {stats}")
         elif isinstance(num_qas, dict):
@@ -48,8 +64,9 @@ class TaskSet:
                         if verbose:
                             print(f"Error: {e}")
                         continue
-                    qas_one_type.append(qa)
-                    stats[k] = stats.get(k, 0) + 1
+                    if self.unique_qa(qa):
+                        qas_one_type.append(qa)
+                        stats[k] = stats.get(k, 0) + 1
                 qas.extend(qas_one_type)
                 print(f"Generated {len(qas_one_type)} QAs of type {k}")
         

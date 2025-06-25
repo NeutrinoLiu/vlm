@@ -1,7 +1,7 @@
 import re
 
 VLM_4O_CUSTOM = {
-    "annotation_path": "/mnt/bn/nlhei-nas/liubangya/proj/vlm/models/tmp/qwen-custom-dataset",
+    "annotation_path": "/mnt/bn/nlhei-nas/liubangya/proj/vlm/models/tmp/qwen-custom-dataset/custom.json",
     "data_path": ""
 }
 

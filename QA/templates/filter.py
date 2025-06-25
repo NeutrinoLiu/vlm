@@ -11,7 +11,10 @@ def filter_area_fn(min_area, max_area=None):
     return filter_fn
 
 def filter_visiblity(anno, thres=100):
-    vis = anno['visibility'].split("-")[-1]
+    try:
+        vis = anno['visibility'].split("-")[-1]
+    except:
+        vis = thres
     return int(vis) >= thres
 
 def filter_all(*filters):
