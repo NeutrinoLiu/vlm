@@ -197,7 +197,9 @@ def compute_visiblity(scene, anno, raster_dir, image_type, subsample_factor, und
         visibility_data['images'][image_name]['objects'] = defaultdict(dict)
 
         rasterout_path = raster_dir / scene.scene_id / f'{image_name}.pth'
-        raster_out_dict = torch.load(rasterout_path)
+        if not rasterout_path.exists():
+            continue
+        raster_out_dict = torch.load(rasterout_path, weights_only=True)
 
         pix_to_face = raster_out_dict['pix_to_face'].squeeze().cpu()
         zbuf = raster_out_dict['zbuf'].squeeze().cpu()

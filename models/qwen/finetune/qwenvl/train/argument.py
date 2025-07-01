@@ -28,7 +28,7 @@ class DataArguments:
     min_pixels: int = field(default=28 * 28 * 16)
     video_max_frames: Optional[int] = field(default=8)
     video_min_frames: Optional[int] = field(default=4)
-    video_max_frame_pixels: int = field(default=2 * 16 * 16 * 28 * 28)
+    video_max_frame_pixels: int = field(default=384 * 28 * 28)
     video_min_frame_pixels: int = field(default=4 * 28 * 28)
 
 

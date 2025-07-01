@@ -40,13 +40,15 @@ def undistort_frames(
     input_mask_dir,
     out_image_dir,
     out_mask_dir,
+    verbose = True
 ):
     new_K = compute_undistort_intrinsic(K, height, width, distortion_params)
     map1, map2 = cv2.fisheye.initUndistortRectifyMap(
         K, distortion_params, np.eye(3), new_K, (width, height), cv2.CV_32FC1
     )
+    fiter = tqdm(frames, desc="frame") if verbose else frames
 
-    for frame in tqdm(frames, desc="frame"):
+    for frame in fiter:
         image_path = Path(input_image_dir) / frame["file_path"]
         image = cv2.imread(str(image_path))
         undistorted_image = cv2.remap(
@@ -100,6 +102,85 @@ def update_transforms_json(transforms, new_K, new_height, new_width):
     return new_transforms
 
 
+def per_proc(data):
+    scene_id, cfg = data
+    scene = ScannetppScene_Release(scene_id, data_root=Path(cfg.data_root) / "data")
+    input_image_dir = cfg.get("input_image_dir", None)
+    if input_image_dir is None:
+        input_image_dir = scene.dslr_resized_dir
+    else:
+        input_image_dir = scene.dslr_dir / input_image_dir
+
+    input_mask_dir = cfg.get("input_mask_dir", None)
+    if input_mask_dir is None:
+        input_mask_dir = scene.dslr_resized_mask_dir
+    else:
+        input_mask_dir = scene.dslr_dir / input_mask_dir
+
+    input_transforms_path = cfg.get("input_transforms_path", None)
+    if input_transforms_path is None:
+        input_transforms_path = scene.dslr_nerfstudio_transform_path
+    else:
+        input_transforms_path = scene.dslr_dir / input_transforms_path
+
+    out_image_dir = scene.dslr_dir / cfg.out_image_dir
+    out_mask_dir = scene.dslr_dir / cfg.out_mask_dir
+    out_transforms_path = scene.dslr_dir / cfg.out_transforms_path
+
+    transforms = load_json(input_transforms_path)
+    assert len(transforms["frames"]) > 0
+    frames = deepcopy(transforms["frames"])
+    if "test_frames" not in transforms:
+        print(f"{scene_id} has no test split")
+    elif not (input_image_dir / transforms["test_frames"][0]["file_path"]).exists():
+        print(
+            f"{scene_id} test image not found. Might due to the scene belonging to testing scenes. "
+            "The resizing will skip those images."
+        )
+    else:
+        assert len(transforms["test_frames"]) > 0
+        frames += transforms["test_frames"]
+
+    height = int(transforms["h"])
+    width = int(transforms["w"])
+    distortion_params = np.array(
+        [
+            float(transforms["k1"]),
+            float(transforms["k2"]),
+            float(transforms["k3"]),
+            float(transforms["k4"]),
+        ]
+    )
+    fx = float(transforms["fl_x"])
+    fy = float(transforms["fl_y"])
+    cx = float(transforms["cx"])
+    cy = float(transforms["cy"])
+    K = np.array(
+        [
+            [fx, 0, cx],
+            [0, fy, cy],
+            [0, 0, 1],
+        ]
+    )
+
+    new_K = undistort_frames(
+        frames,
+        K,
+        height,
+        width,
+        distortion_params,
+        input_image_dir,
+        input_mask_dir,
+        out_image_dir,
+        out_mask_dir,
+    )
+    new_trasforms = update_transforms_json(transforms, new_K, height, width)
+    out_transforms_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_transforms_path, "w") as f:
+        json.dump(new_trasforms, f, indent=4)
+
+from multiprocessing import Pool
+
 def main(args):
     cfg = load_yaml_munch(args.config_file)
 
@@ -113,91 +194,22 @@ def main(args):
     #         scene_ids += read_txt_list(split_path)
 
     scene_ids = read_txt_list(cfg.scene_list_file)
-
+    scene_ids_with_cfg = [
+        (sid, cfg) for sid in scene_ids
+    ]
     # get the options to process
     # go through each scene
-    for scene_id in tqdm(scene_ids, desc="scene"):
 
-        
-        scene = ScannetppScene_Release(scene_id, data_root=Path(cfg.data_root) / "data")
-        input_image_dir = cfg.get("input_image_dir", None)
-        if input_image_dir is None:
-            input_image_dir = scene.dslr_resized_dir
-        else:
-            input_image_dir = scene.dslr_dir / input_image_dir
-
-        input_mask_dir = cfg.get("input_mask_dir", None)
-        if input_mask_dir is None:
-            input_mask_dir = scene.dslr_resized_mask_dir
-        else:
-            input_mask_dir = scene.dslr_dir / input_mask_dir
-
-        input_transforms_path = cfg.get("input_transforms_path", None)
-        if input_transforms_path is None:
-            input_transforms_path = scene.dslr_nerfstudio_transform_path
-        else:
-            input_transforms_path = scene.dslr_dir / input_transforms_path
-
-        out_image_dir = scene.dslr_dir / cfg.out_image_dir
-        out_mask_dir = scene.dslr_dir / cfg.out_mask_dir
-        out_transforms_path = scene.dslr_dir / cfg.out_transforms_path
-
-        transforms = load_json(input_transforms_path)
-        assert len(transforms["frames"]) > 0
-        frames = deepcopy(transforms["frames"])
-        if "test_frames" not in transforms:
-            print(f"{scene_id} has no test split")
-        elif not (input_image_dir / transforms["test_frames"][0]["file_path"]).exists():
-            print(
-                f"{scene_id} test image not found. Might due to the scene belonging to testing scenes. "
-                "The resizing will skip those images."
-            )
-        else:
-            assert len(transforms["test_frames"]) > 0
-            frames += transforms["test_frames"]
-
-        height = int(transforms["h"])
-        width = int(transforms["w"])
-        distortion_params = np.array(
-            [
-                float(transforms["k1"]),
-                float(transforms["k2"]),
-                float(transforms["k3"]),
-                float(transforms["k4"]),
-            ]
-        )
-        fx = float(transforms["fl_x"])
-        fy = float(transforms["fl_y"])
-        cx = float(transforms["cx"])
-        cy = float(transforms["cy"])
-        K = np.array(
-            [
-                [fx, 0, cx],
-                [0, fy, cy],
-                [0, 0, 1],
-            ]
-        )
-
-        new_K = undistort_frames(
-            frames,
-            K,
-            height,
-            width,
-            distortion_params,
-            input_image_dir,
-            input_mask_dir,
-            out_image_dir,
-            out_mask_dir,
-        )
-        new_trasforms = update_transforms_json(transforms, new_K, height, width)
-        out_transforms_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(out_transforms_path, "w") as f:
-            json.dump(new_trasforms, f, indent=4)
-
+    
+    # for scene_id in tqdm(scene_ids, desc="scene"):
+    with Pool(processes=args.job) as pool:
+        for result in tqdm(pool.imap(per_proc, scene_ids_with_cfg)):
+            print(result)
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("config_file", help="Path to config file")
+    p.add_argument("-j", "--job", help="multi process", type=int, default=1)
     args = p.parse_args()
 
     main(args)

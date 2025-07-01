@@ -178,7 +178,7 @@ def rasterize_mesh(meshes, img_height, img_width, cameras):
     )
 
     with torch.no_grad():
-        raster_out = rasterizer(meshes, cameras=cameras.to(device))
+        raster_out = rasterizer(meshes, cameras=cameras.to(meshes.device))
 
     raster_out_dict = {
         'pix_to_face': raster_out.pix_to_face.cpu(),

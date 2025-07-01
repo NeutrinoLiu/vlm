@@ -1,8 +1,10 @@
-datasets/*/instance_crops
+datasets/*/*crops
 datasets/*/*-data
 datasets/*/*.yaml
-
+datasets/*/*.yml
+**/temp*
 models/
 workspace/
 worker-plans/*plan.json
-**/__pycache__/**
+**/__pycache__
+**/outputs

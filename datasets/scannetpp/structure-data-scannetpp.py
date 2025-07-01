@@ -8,8 +8,7 @@ from tqdm import tqdm
 # from numpy import imag
 from PIL import Image
 
-import sys
-sys.path.append('../')
+
 from scannetpp.common.utils.colmap import read_model
 from scannetpp.common.utils.anno import get_visiblity_from_cache
 from scannetpp.common.scene_release import ScannetppScene_Release
@@ -36,16 +35,18 @@ def read_txt_list(path):
 
     return lines
 
-scene_list = read_txt_list("./sc_name.txt")
+scene_list = read_txt_list("/mnt/bn/nlhei-nas/liubangya/proj/vlm/datasets/scannetpp/preprocess/sc_name.txt")
 # scene_list = ["0a5c01343testtest"] 
 
 
-SCANNETPP_ROOT = "../Journey9ni_raw_data_part/scannetpp/data"
+SCANNETPP_ROOT = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/datasets/scannetpp/scannetpp-data/data"
+RASTER_RES = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/datasets/scannetpp/temp_rasterize/dslr"
+RASTER_CACHE = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/datasets/scannetpp/temp_cache"
 OUTPUT_ROOT = "./structured-data"
 CROPS_ROOT = "./structured-data-crops"
 POSTFIX = "jpg"
 SENSOR = 'CAM_FRONT'
-MIN_AREA = 10000
+MIN_AREA = 5000
 
 
 
@@ -185,8 +186,8 @@ for sc in scene_list:
         data = json.load(f)
     inst_crops = {} # token: [image_path, 2d_crop_diag, 2d_crop_area, visb]
     visibility = get_visiblity_from_cache(scene = ScannetppScene_Release(sc, data_root=SCANNETPP_ROOT),
-                                          raster_dir=Path("../temp_rasterize/dslr"),
-                                          cache_dir="../temp_cache",
+                                          raster_dir=Path(RASTER_RES),
+                                          cache_dir=RASTER_CACHE,
                                           image_type="dslr",
                                           subsample_factor=1,)
 

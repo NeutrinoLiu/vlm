@@ -1,0 +1,29 @@
+# python -m semantic.prep.rasterize
+# release data downloaded to disk
+data_root: /mnt/bn/nlhei-nas/liubangya/proj/vlm/datasets/scannetpp/scannetpp-data/data
+scene_list_file: /mnt/bn/nlhei-nas/liubangya/proj/vlm/datasets/scannetpp/preprocess/sc_name_4GPU.txt
+job: 8
+
+filter_scenes: []
+
+# image type - iphone or dslr
+image_type: dslr
+
+no_log: true
+
+# subsample images 
+subsample_factor: 4
+
+# downsample images and rasterize
+image_downsample_factor: 4
+
+rasterout_dir: ../temp_rasterize
+
+limit_images: None
+
+wandb_group: null
+wandb_notes: null
+
+batch_size: 4
+limit_batches: null
+skip_existing: true

@@ -99,11 +99,12 @@ class QAScene:
                 objs.append(new_obj)
         return objs
 
-    def __init__(self, ds, name, sc_root: str, ):
+    def __init__(self, ds, name, sc_root: str):
         self.ds = ds
         self.name = name
         self.root = sc_root
         frames = os.listdir(sc_root)
+        frames = [f for f in frames if os.path.isdir(os.path.join(sc_root, f))]
         frames.sort()
         self.frames_imgs = []
         self.frames_metas = []
@@ -144,14 +145,24 @@ def imap_with_tqdm(func, iterable, num_works=32):
             )
 
 class QADataset:
-    def __init__(self, ds_root: str, cap_mgr=None):
+    def __init__(self, ds_root: str, cap_mgr=None, valid_check_fn=None):
         self.root = ds_root
         self.cap_mgr = cap_mgr
         self.scenes = os.listdir(ds_root)
+        # only retain folder
+        self.scenes = [
+            scene for scene in self.scenes if os.path.isdir(os.path.join(ds_root, scene))
+        ]
+        if valid_check_fn is not None:
+            self.scenes = [
+                scene for scene in self.scenes if valid_check_fn(scene)
+            ]
+
         self.scenes = imap_with_tqdm(
                 lambda x: QAScene(self, x, os.path.join(ds_root, x)),
                 self.scenes
             )
+        print(f"Found {len(self.scenes)} scenes in {ds_root}")
 
     def caption_ready(self, scene, inst_token):
         if self.cap_mgr is None:
