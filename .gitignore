@@ -4,6 +4,7 @@ datasets/*/*.yaml
 datasets/*/*.yml
 **/temp*
 models/
+plans/
 workspace/
 worker-plans/*plan.json
 **/__pycache__

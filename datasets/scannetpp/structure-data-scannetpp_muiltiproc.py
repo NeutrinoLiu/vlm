@@ -195,6 +195,11 @@ def process_single_scene(sc):
 
     # print(f" > Processing scene {sc['token']} ...")
     sc_dir = os.path.join(OUTPUT_ROOT, sc)
+    finished_flag = os.path.join(sc_dir, "finished.flag")
+    if os.path.exists(finished_flag):
+        print(f" > Skipping scene {sc} because finished.flag exists.")
+        return
+
     frame_list = sorted(os.listdir(os.path.join(SCANNETPP_ROOT, sc, 'dslr', 'undistorted_images')))
     # frame_list = sorted(os.listdir(os.path.join(SCANNETPP_ROOT, sc, 'dslr', 'undistorted_images')))
     
@@ -255,6 +260,7 @@ def process_single_scene(sc):
         for obj in data['segGroups']:
                 # 跳过在该frame中不可见的物体
             obj_id = obj['objectId']
+            obj['label'] = obj['label'].replace("/", " ")
 
             if obj_id not in visibility["images"][frame]["objects"]:
                 continue  # 当前帧中没这个 object，跳过
@@ -363,7 +369,6 @@ def process_single_scene(sc):
         img = img.crop((diag[0, 0], diag[1, 0], diag[0, 1], diag[1, 1]))
         img.save(img_save_path)
     
-    finished_flag = os.path.join(sc_dir, "finished.flag")
     with open(finished_flag, 'w') as f:
         f.write('done')
 

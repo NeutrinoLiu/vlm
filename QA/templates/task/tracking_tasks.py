@@ -70,6 +70,7 @@ class TrackingTasks(TaskSet):
         self.patchsize_W = cfg["patchsize_W"]
         self.motion_thres = cfg["motion_thres"]
         self.num_frame = cfg["num_frame"]
+        self.frame_strid = cfg["frame_stride"]
 
         obj_desc = obj_desc_fn if captioner is None else captioner.obj_desc_fn
         myfilter = basefilter if basefilter is not None else lambda x: True
@@ -91,7 +92,7 @@ class TrackingTasks(TaskSet):
             obj_filter=myfilter,
             config={
                 "num_objs": 1,
-                "num_frames": (self.num_frame, 2, "samples stride"),
+                "num_frames": (self.num_frame, self.frame_strid, "samples stride"),
                 "QA_type": "obj_cross_frame_tracking"
             },
         )

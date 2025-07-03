@@ -44,7 +44,7 @@ tune_mm_vision: false
 tune_mm_mlp: true
 tune_mm_llm: true
 bf16: true
-num_train_epochs: 2
+num_train_epochs: 1
 eval_strategy: "no"
 save_strategy: "steps"
 save_steps: 1000

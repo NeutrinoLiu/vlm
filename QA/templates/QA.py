@@ -158,10 +158,23 @@ class QADataset:
                 scene for scene in self.scenes if valid_check_fn(scene)
             ]
 
+        def get_scene(sc_name):
+            try:
+                return QAScene(self, sc_name, os.path.join(ds_root, sc_name))
+            except Exception as e:
+                print(f"Error in getting scene {sc_name}: {e}")
+                return None
+
         self.scenes = imap_with_tqdm(
-                lambda x: QAScene(self, x, os.path.join(ds_root, x)),
+                get_scene,
                 self.scenes
             )
+        before = len(self.scenes)
+        self.scenes = [scene for scene in self.scenes if scene is not None]
+        after = len(self.scenes)
+        if before - after > 0:
+            print(f"fails to parse {before - after} scenes")
+
         print(f"Found {len(self.scenes)} scenes in {ds_root}")
 
     def caption_ready(self, scene, inst_token):
