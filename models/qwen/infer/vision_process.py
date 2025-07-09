@@ -25,23 +25,23 @@ from torchvision.transforms import InterpolationMode
 
 logger = logging.getLogger(__name__)
 
-IMAGE_FACTOR = 28
-MIN_PIXELS = 4 * 28 * 28
-MAX_PIXELS = 16384 * 28 * 28
-MAX_RATIO = 200
+from train_arguments import DataArguments
 
-VIDEO_MIN_PIXELS = 128 * 28 * 28
-VIDEO_MAX_PIXELS = 768 * 28 * 28
-FRAME_FACTOR = 2
-FPS = 2.0
-FPS_MIN_FRAMES = 4
-FPS_MAX_FRAMES = 768
 
-# Set the maximum number of video token inputs.
-# Here, 128K represents the maximum number of input tokens for the VLLM model.
-# Remember to adjust it according to your own configuration.
-VIDEO_TOTAL_PIXELS = int(float(os.environ.get('VIDEO_MAX_PIXELS', 128000 * 28 * 28 * 0.9)))
-logger.info(f"set VIDEO_TOTAL_PIXELS: {VIDEO_TOTAL_PIXELS}")
+class VisionConfigs:
+    IMAGE_FACTOR = 28
+    MIN_PIXELS = DataArguments.max_pixels
+    MAX_PIXELS = DataArguments.min_pixels
+    MAX_RATIO = 200
+
+    VIDEO_MIN_PIXELS = DataArguments.video_min_frame_pixels
+    VIDEO_MAX_PIXELS = DataArguments.video_max_frame_pixels
+    VIDEO_TOTAL_PIXELS = int(128000 * 28 * 28 * 0.9)
+    
+    FRAME_FACTOR = DataArguments.base_interval
+    FPS = 2.0
+    FPS_MIN_FRAMES = 4
+    FPS_MAX_FRAMES = 768
 
 
 def round_by_factor(number: int, factor: int) -> int:
@@ -60,8 +60,14 @@ def floor_by_factor(number: int, factor: int) -> int:
 
 
 def smart_resize(
-    height: int, width: int, factor: int = IMAGE_FACTOR, min_pixels: int = MIN_PIXELS, max_pixels: int = MAX_PIXELS
+    height: int, width: int, factor: int = None, min_pixels: int = None, max_pixels: int = None
 ) -> tuple[int, int]:
+    if factor is None:
+        factor = VisionConfigs.IMAGE_FACTOR
+    if min_pixels is None:
+        min_pixels = VisionConfigs.MIN_PIXELS
+    if max_pixels is None:
+        max_pixels = VisionConfigs.MAX_PIXELS
     """
     Rescales the image so that the following conditions are met:
 
@@ -71,9 +77,9 @@ def smart_resize(
 
     3. The aspect ratio of the image is maintained as closely as possible.
     """
-    if max(height, width) / min(height, width) > MAX_RATIO:
+    if max(height, width) / min(height, width) > VisionConfig.MAX_RATIO:
         raise ValueError(
-            f"absolute aspect ratio must be smaller than {MAX_RATIO}, got {max(height, width) / min(height, width)}"
+            f"absolute aspect ratio must be smaller than {VisionConfig.MAX_RATIO}, got {max(height, width) / min(height, width)}"
         )
     h_bar = max(factor, round_by_factor(height, factor))
     w_bar = max(factor, round_by_factor(width, factor))
@@ -97,7 +103,9 @@ def to_rgb(pil_image: Image.Image) -> Image.Image:
         return pil_image.convert("RGB")
 
 
-def fetch_image(ele: dict[str, str | Image.Image], size_factor: int = IMAGE_FACTOR) -> Image.Image:
+def fetch_image(ele: dict[str, str | Image.Image], size_factor: int = None) -> Image.Image:
+    if size_factor is None:
+        size_factor = VisionConfigs.IMAGE_FACTOR
     if "image" in ele:
         image = ele["image"]
     else:
@@ -134,8 +142,8 @@ def fetch_image(ele: dict[str, str | Image.Image], size_factor: int = IMAGE_FACT
         )
     else:
         width, height = image.size
-        min_pixels = ele.get("min_pixels", MIN_PIXELS)
-        max_pixels = ele.get("max_pixels", MAX_PIXELS)
+        min_pixels = ele.get("min_pixels", VisionConfig.MIN_PIXELS)
+        max_pixels = ele.get("max_pixels", VisionConfig.MAX_PIXELS)
         resized_height, resized_width = smart_resize(
             height,
             width,
@@ -166,25 +174,25 @@ def smart_nframes(
         video_fps (int | float): the original fps of the video.
 
     Raises:
-        ValueError: nframes should in interval [FRAME_FACTOR, total_frames].
+        ValueError: nframes should in interval [VisionConfig.FRAME_FACTOR, total_frames].
 
     Returns:
         int: the number of frames for video used for model inputs.
     """
     assert not ("fps" in ele and "nframes" in ele), "Only accept either `fps` or `nframes`"
     if "nframes" in ele:
-        nframes = round_by_factor(ele["nframes"], FRAME_FACTOR)
+        nframes = round_by_factor(ele["nframes"], VisionConfig.FRAME_FACTOR)
     else:
-        fps = ele.get("fps", FPS)
-        min_frames = ceil_by_factor(ele.get("min_frames", FPS_MIN_FRAMES), FRAME_FACTOR)
-        max_frames = floor_by_factor(ele.get("max_frames", min(FPS_MAX_FRAMES, total_frames)), FRAME_FACTOR)
+        fps = ele.get("fps", VisionConfig.FPS)
+        min_frames = ceil_by_factor(ele.get("min_frames", VisionConfig.FPS_MIN_FRAMES), VisionConfig.FRAME_FACTOR)
+        max_frames = floor_by_factor(ele.get("max_frames", min(VisionConfig.FPS_MAX_FRAMES, total_frames)), VisionConfig.FRAME_FACTOR)
         nframes = total_frames / video_fps * fps
         if nframes > total_frames:
             logger.warning(f"smart_nframes: nframes[{nframes}] > total_frames[{total_frames}]")
         nframes = min(min(max(nframes, min_frames), max_frames), total_frames)
-        nframes = floor_by_factor(nframes, FRAME_FACTOR)
-    if not (FRAME_FACTOR <= nframes and nframes <= total_frames):
-        raise ValueError(f"nframes should in interval [{FRAME_FACTOR}, {total_frames}], but got {nframes}.")
+        nframes = floor_by_factor(nframes, VisionConfig.FRAME_FACTOR)
+    if not (VisionConfig.FRAME_FACTOR <= nframes and nframes <= total_frames):
+        raise ValueError(f"nframes should in interval [{VisionConfig.FRAME_FACTOR}, {total_frames}], but got {nframes}.")
     return nframes
 
 
@@ -392,7 +400,9 @@ def get_video_reader_backend() -> str:
     return video_reader_backend
 
 
-def fetch_video(ele: dict, image_factor: int = IMAGE_FACTOR, return_video_sample_fps: bool = False) -> torch.Tensor | list[Image.Image]:
+def fetch_video(ele: dict, image_factor: int = None, return_video_sample_fps: bool = False) -> torch.Tensor | list[Image.Image]:
+    if image_factor is None:
+        image_factor = VisionConfig.IMAGE_FACTOR
     if isinstance(ele["video"], str):
         video_reader_backend = get_video_reader_backend()
         try:
@@ -402,9 +412,9 @@ def fetch_video(ele: dict, image_factor: int = IMAGE_FACTOR, return_video_sample
             video, sample_fps = VIDEO_READER_BACKENDS["torchvision"](ele)
 
         nframes, _, height, width = video.shape
-        min_pixels = ele.get("min_pixels", VIDEO_MIN_PIXELS)
+        min_pixels = ele.get("min_pixels", VisionConfig.VIDEO_MIN_PIXELS)
         total_pixels = ele.get("total_pixels", VIDEO_TOTAL_PIXELS)
-        max_pixels = max(min(VIDEO_MAX_PIXELS, total_pixels / nframes * FRAME_FACTOR), int(min_pixels * 1.05))
+        max_pixels = max(min(VisionConfig.VIDEO_MAX_PIXELS, total_pixels / nframes * VisionConfig.FRAME_FACTOR), int(min_pixels * 1.05))
         max_pixels_supposed = ele.get("max_pixels", max_pixels)
         if max_pixels_supposed > max_pixels:
             logger.warning(f"The given max_pixels[{max_pixels_supposed}] exceeds limit[{max_pixels}].")
@@ -441,7 +451,7 @@ def fetch_video(ele: dict, image_factor: int = IMAGE_FACTOR, return_video_sample
             fetch_image({"image": video_element, **process_info}, size_factor=image_factor)
             for video_element in ele["video"]
         ]
-        nframes = ceil_by_factor(len(images), FRAME_FACTOR)
+        nframes = ceil_by_factor(len(images), VisionConfig.FRAME_FACTOR)
         if len(images) < nframes:
             images.extend([images[-1]] * (nframes - len(images)))
         if return_video_sample_fps:

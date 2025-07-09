@@ -13,7 +13,7 @@ from peft import PeftModel
 from threading import Thread
 import time
 
-from vision_process import process_vision_info
+from vision_process import process_vision_info, VisionConfig
 
 def load_model(args):
 
@@ -250,8 +250,10 @@ if __name__ == "__main__":
     parser.add_argument("--ans-path", type=str, default="./answers.json")
     parser.add_argument("--model-max-length", type=int, default=8192)
     parser.add_argument("--max-new-tokens", type=int, default=1024)
-    # parser.add_argument("--max-pixels", type=int, default=512*28*28)
-    # parser.add_argument("--min-pixels", type=int, default=786)
+    parser.add_argument("--max_pixels", type=int, default=512 * 28 * 28)
+    parser.add_argument("--min_pixels", type=int, default=16 * 28 * 28)
+    parser.add_argument("--video_max_frame_pixels", type=int, default=384 * 28 * 28)
+    parser.add_argument("--video_min_frame_pixels", type=int, default=3136)
     parser.add_argument("--base-only", action="store_true", help="Whether to load lora model")
     parser.add_argument("--save-merged", action="store_true", help="save lora merged model")
     parser.add_argument("-b", "--batch-size", type=int, default=1, help="batch size")
@@ -262,11 +264,18 @@ if __name__ == "__main__":
         args.base_only = True
         print(f"model-path not set, use base-only model, will eval on {args.model_base}")
     print(" >>> Arguments:")
-    # print("   | min_pixels: ", args.min_pixels)
-    # print("   | max_pixels: ", args.max_pixels)
+    print("   | min_pixels: ", args.min_pixels)
+    print("   | max_pixels: ", args.max_pixels)
+    print("   | video_min_frame_pixels: ", args.video_min_frame_pixels)
+    print("   | video_max_frame_pixels: ", args.video_max_frame_pixels)
     print("   | model_max_length: ", args.model_max_length)
     print("   | max_new_tokens: ", args.max_new_tokens)
     print(" >>> plz confirm above is the same as the training time")
+
+    VisionConfig.MIN_PIXELS = args.min_pixels
+    VisionConfig.MAX_PIXELS = args.max_pixels
+    VisionConfig.VIDEO_MIN_PIXELS = args.video_min_frame_pixels
+    VisionConfig.VIDEO_MAX_PIXELS = args.video_max_frame_pixels
 
     eval(args)
     

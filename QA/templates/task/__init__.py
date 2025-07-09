@@ -28,20 +28,25 @@ class TaskSet:
         else:
             self.unique_hash.add(new_hash)
             return True
+    def reset_qa_hash(self):
+        self.unique_hash = set()
+        self.duped_hash_ctr = 0
 
-    def produce(self, dataset, num_qas, verbose=False):
+    def produce(self, scenes, num_qas, verbose=False):
         qas = []
         stats = {}
         if isinstance(num_qas, int):
             while len(qas) < num_qas:
-                sc = random.choice(dataset.scenes)
+                sc = random.choice(scenes)
                 temp = random.choice(list(self.tasks.values()))
                 # qa = temp(sc)
                 try:
                     qa = temp(sc)
                 except Exception as e:
                     if verbose:
-                        print(f"Error: {e}")
+                        import traceback
+                        print(f"Error: qa gen failed with error: {e}")
+                        traceback.print_exc()
                     continue
                 if self.unique_qa(qa):
                     qas.append(qa)
@@ -56,13 +61,15 @@ class TaskSet:
                         print(f"Warning: {k} not found in tasks")
                     continue
                 while len(qas_one_type) < v:
-                    sc = random.choice(dataset.scenes)
+                    sc = random.choice(scenes)
                     temp = self.tasks[k]
                     try:
                         qa = temp(sc)
                     except Exception as e:
                         if verbose:
-                            print(f"Error: {e}")
+                            import traceback
+                            print(f"Error: qa gen failed with error: {e}")
+                            traceback.print_exc()
                         continue
                     if self.unique_qa(qa):
                         qas_one_type.append(qa)

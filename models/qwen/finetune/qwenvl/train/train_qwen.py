@@ -24,6 +24,7 @@ from typing import Dict
 import shutil
 import sys
 from pathlib import Path
+import numpy as np
 
 project_root = Path(__file__).parent.parent.parent
 sys.path.append(str(project_root))
@@ -240,6 +241,12 @@ def train(attn_implementation="flash_attention_2"):
 
     if list(pathlib.Path(training_args.output_dir).glob("checkpoint-*")):
         logging.info("checkpoint found, resume training")
+        torch.serialization.add_safe_globals([
+            np.core.multiarray._reconstruct, 
+            np.ndarray, 
+            np.dtype, 
+            type(np.dtype(np.uint32))
+        ])
         trainer.train(resume_from_checkpoint=True)
     else:
         trainer.train()

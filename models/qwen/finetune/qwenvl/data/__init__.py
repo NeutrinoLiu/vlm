@@ -1,5 +1,10 @@
 import re
 
+SCANNET_DET = {
+    "annotation_path": "/mnt/bn/nlhei-nas/liubangya/proj/VG-LLM/data/train/scannet_det_train_4frames.json",
+    "data_path": "/mnt/bn/nlhei-nas/liubangya/proj/VG-LLM/data/media",
+}
+
 VLM_4O_CUSTOM = {
     "annotation_path": "/mnt/bn/nlhei-nas/liubangya/proj/vlm/models/tmp/qwen-custom-dataset/custom.json",
     "data_path": ""
@@ -31,7 +36,8 @@ data_dict = {
     "mp_doc": MP_DOC,
     "clevr_mc": CLEVR_MC,
     "videochatgpt": VIDEOCHATGPT,
-    "vlm_4o_custom": VLM_4O_CUSTOM
+    "vlm_4o_custom": VLM_4O_CUSTOM,
+    "scannet_det": SCANNET_DET
 }
 
 

@@ -11,10 +11,6 @@ from PIL import Image
 
 import numpy as np
 from scipy.spatial import ConvexHull
-import sys
-sys.path.append('../')
-
-
 
 import json
 from scipy.spatial.transform import Rotation as R
@@ -34,17 +30,15 @@ def read_txt_list(path):
 
     return lines
 
-scene_list = read_txt_list("./sc_name_arkit.txt")
-# scene_list = ["0a5c01343testtest"] 
+scene_list = read_txt_list("./sc_names.txt")
 
-
-ARKit_ROOT = "../ARKitScenes/3dod/Training"
+ARKit_ROOT = "/mnt/bn/nlhei-nas/liubangya/proj/vlm/datasets/arkitscenes/arkitscenes-data/3dod/Training"
 OUTPUT_ROOT = "./structured-data"
 CROPS_ROOT = "./structured-data-crops"
 POSTFIX = "jpg"
 SENSOR = 'CAM_FRONT'
 MIN_AREA = 10000
-MUILTI_PROCESS_NUM = 8
+MUILTI_PROCESS_NUM = 100
 
 
 
@@ -520,8 +514,6 @@ def process_single_scene(sc):
             })
             vis_objects.append(obj)
 
-            # dump instance crops
-            MIN_AREA = 10000
             MIN_VIS = 100
             # vis_val = int(visibility.split('-')[-1])
             crop = inst_crops.get(instance_token, None)

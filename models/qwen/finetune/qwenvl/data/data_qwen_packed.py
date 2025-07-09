@@ -380,9 +380,12 @@ class LazySupervisedDataset(Dataset):
         video_grid_thw = None
         second_per_grid_ts = None
 
-        if "image" in sources[0]:
+        if "image" in sources[0] or "images" in sources[0]:
             image_folder = sources[0]["data_path"]
-            image_file = sources[0]["image"]
+            image_file = sources[0].get("image", None)
+            if image_file is None:
+                image_file = sources[0].get("images", None)
+            assert image_file is not None, "neither image nor images is provided in the annotations"
             if isinstance(image_file, List):
                 if len(image_file) > 1:
                     image_file = [
@@ -455,7 +458,7 @@ class LazySupervisedDataset(Dataset):
             ),
             second_per_grid_ts=second_per_grid_ts if second_per_grid_ts else None,
         )
-        if "image" not in sources[0] and "video" not in sources[0]:
+        if "image" not in sources[0] and "images" not in sources[0] and "video" not in sources[0]:
             grid_thw_merged = None
             sources = copy.deepcopy([e["conversations"] for e in sources])
             data_dict = preprocess_qwen_2_visual(

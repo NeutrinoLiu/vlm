@@ -23,12 +23,12 @@ class DataArguments:
     dataset_use: str = field(default="")
     data_flatten: bool = field(default=False)
     data_packing: bool = field(default=False)
-    base_interval: int = field(default=1)
-    max_pixels: int = field(default=2 * 16 * 16 * 28 * 28)
-    min_pixels: int = field(default=28 * 28 * 16)
+    base_interval: int = field(default=2)
+    max_pixels: int = field(default=512 * 28 * 28)
+    min_pixels: int = field(default=16 * 28 * 28)
     video_max_frames: Optional[int] = field(default=8)
     video_min_frames: Optional[int] = field(default=4)
-    video_max_frame_pixels: int = field(default=384 * 28 * 28)
+    video_max_frame_pixels: int = field(default=512 * 28 * 28)
     video_min_frame_pixels: int = field(default=4 * 28 * 28)
 
 

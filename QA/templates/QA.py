@@ -232,8 +232,8 @@ class QATemplate:
             "instance_token": obj[0],
             "category_name": obj[1]
             } for obj in objs]
+        # print(f"for scene {scene.name}, samples {len(frames)} frames, num of availale objs {len(objs)}, needed objs {num_objs}")
         objs = random.sample(objs, num_objs)
-
 
         # QA construction
         final_QA = self.QA_temp
